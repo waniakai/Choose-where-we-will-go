@@ -18,9 +18,10 @@ body {
 .header {
     text-align: center;
     font-size: 80px;
-    margin-top: 30px;
+    margin: 40px 40px 40px 40px;
     font-weight: 600;
     color: #6b4a1f;
+    padding: 16 16 16 16;
 }
 
 /* Base option */
@@ -35,11 +36,12 @@ body {
         left 1s cubic-bezier(.68,-0.55,.27,1.55),
         top 1s cubic-bezier(.68,-0.55,.27,1.55),
         transform 0.6s ease,
+        opacity 0.6s ease,
         box-shadow 0.6s ease;
     box-shadow: 0 12px 30px rgba(0,0,0,0.08);
 }
 
-/* Starting positions (BIG) */
+/* Starting positions */
 .puno {
     background: linear-gradient(135deg, #ffe27a, #ffcc4d);
     left: 30%;
@@ -65,16 +67,18 @@ body {
     z-index: 6;
 }
 
-/* Roaming effect */
+/* Roaming */
 .roam {
     transform: scale(1.35) rotate(8deg);
     box-shadow: 0 18px 40px rgba(255,180,90,0.45);
 }
 
-/* Shrink behind */
-.behind {
-    transform: scale(0.65);
-    z-index: 3;
+/* ✅ FINAL: behind Any Resort */
+.behind-anyresort {
+    z-index: 5;              /* behind Any Resort (6) */
+    transform: scale(0.4);   /* fully hidden */
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* Any Resort takeover */
@@ -92,14 +96,13 @@ body {
 .pulse {
     animation: pulse 1.5s infinite;
 }
-
 @keyframes pulse {
     0%   { transform: translate(-50%, -50%) scale(2.4); }
     50%  { transform: translate(-50%, -50%) scale(2.6); }
     100% { transform: translate(-50%, -50%) scale(2.4); }
 }
 
-/* MODAL — always on top */
+/* Modal */
 .modal {
     position: fixed;
     inset: 0;
@@ -112,13 +115,11 @@ body {
     transition: opacity 0.5s ease;
     z-index: 9999;
 }
-
 .modal.show {
     opacity: 1;
     pointer-events: auto;
 }
 
-/* Big final message */
 .modal-box {
     background: white;
     padding: 70px;
@@ -127,14 +128,11 @@ body {
     max-width: 760px;
     box-shadow: 0 50px 120px rgba(255,150,90,0.4);
 }
-
 .modal-box h1 {
     font-size: 56px;
-    line-height: 1.2;
-    color: #ff6f61;
     margin: 0;
+    color: #ff6f61;
 }
-
 .modal-box p {
     font-size: 26px;
     margin-top: 24px;
@@ -153,7 +151,6 @@ body {
 <div class="option accoland">Accoland</div>
 <div class="option any-resort">Any Resort</div>
 
-<!-- FINAL MODAL -->
 <div class="modal" id="modal">
     <div class="modal-box">
         <h1>🌴 We’re Going to the Resort!</h1>
@@ -167,50 +164,52 @@ const accoland = document.querySelector('.accoland');
 const resort = document.querySelector('.any-resort');
 const modal = document.getElementById('modal');
 
-let punoClicks = 0;
-let accolandClicks = 0;
-const maxClicks = 4;
+let punoCount = 0;
+let accolandCount = 0;
+const maxMoves = 4;
 
-/* Roaming */
+/* Roam on hover */
 function roam(el) {
     el.style.left = Math.random() * (window.innerWidth - 220) + 'px';
     el.style.top = Math.random() * (window.innerHeight - 220) + 'px';
     el.classList.add('roam');
-    setTimeout(() => el.classList.remove('roam'), 450);
+    setTimeout(() => el.classList.remove('roam'), 400);
 }
 
-/* Final move behind Any Resort */
-function finish(el, offsetX) {
+/* Move exactly behind Any Resort */
+function moveBehindAnyResort(el) {
     const r = resort.getBoundingClientRect();
-    el.style.left = r.left + offsetX + 'px';
-    el.style.top = r.top + 80 + 'px';
-    el.classList.add('behind');
+    el.style.left = r.left + 'px';
+    el.style.top  = r.top  + 'px';
+    el.classList.add('behind-anyresort');
     checkTakeover();
 }
 
-/* Trigger takeover */
 function checkTakeover() {
-    if (punoClicks >= maxClicks && accolandClicks >= maxClicks) {
+    if (punoCount >= maxMoves && accolandCount >= maxMoves) {
         resort.classList.add('takeover', 'pulse');
     }
 }
 
-/* Click handlers */
-puno.onclick = () => {
-    punoClicks++;
-    punoClicks < maxClicks ? roam(puno) : finish(puno, -80);
-};
+/* Hover handlers */
+puno.addEventListener('mouseenter', () => {
+    if (punoCount < maxMoves) {
+        punoCount++;
+        punoCount < maxMoves ? roam(puno) : moveBehindAnyResort(puno);
+    }
+});
 
-accoland.onclick = () => {
-    accolandClicks++;
-    accolandClicks < maxClicks ? roam(accoland) : finish(accoland, 80);
-};
+accoland.addEventListener('mouseenter', () => {
+    if (accolandCount < maxMoves) {
+        accolandCount++;
+        accolandCount < maxMoves ? roam(accoland) : moveBehindAnyResort(accoland);
+    }
+});
 
+/* Final click */
 resort.onclick = () => {
     if (resort.classList.contains('takeover')) {
         modal.classList.add('show');
-
-        // Freeze background
         document.body.style.pointerEvents = 'none';
         modal.style.pointerEvents = 'auto';
     }
@@ -219,5 +218,3 @@ resort.onclick = () => {
 
 </body>
 </html>
-
-
